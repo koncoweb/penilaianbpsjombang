@@ -94,7 +94,14 @@ const Employees = () => {
   const onAddSubmit = async (values: z.infer<typeof employeeSchema>) => {
     const { error } = await supabase.from("employees").insert([values]);
     if (error) {
-      toast({ title: "Error", description: `Gagal menambahkan pegawai: ${error.message}`, variant: "destructive" });
+      let errorMessage = `Gagal menambahkan pegawai: ${error.message}`;
+      
+      // Check for unique constraint violation on NIP
+      if (error.code === '23505' && error.details?.includes('nip')) {
+        errorMessage = 'NIP ini sudah digunakan oleh pegawai lain. Harap cek kembali dan gunakan NIP yang berbeda.';
+      }
+      
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } else {
       toast({ title: "Sukses", description: "Pegawai berhasil ditambahkan." });
       addForm.reset();
@@ -106,7 +113,14 @@ const Employees = () => {
     if (!editingEmployee) return;
     const { error } = await supabase.from("employees").update(values).eq("id", editingEmployee.id);
     if (error) {
-      toast({ title: "Error", description: `Gagal memperbarui pegawai: ${error.message}`, variant: "destructive" });
+      let errorMessage = `Gagal memperbarui pegawai: ${error.message}`;
+      
+      // Check for unique constraint violation on NIP
+      if (error.code === '23505' && error.details?.includes('nip')) {
+        errorMessage = 'NIP ini sudah digunakan oleh pegawai lain. Harap cek kembali dan gunakan NIP yang berbeda.';
+      }
+      
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } else {
       toast({ title: "Sukses", description: "Data pegawai berhasil diperbarui." });
       setIsEditDialogOpen(false);
