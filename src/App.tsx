@@ -9,6 +9,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Login from "./pages/Login";
 import AdminLayout from "./components/layouts/AdminLayout";
 import Employees from "./pages/admin/Employees";
+import Kipapp from "./pages/admin/Kipapp";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
             {/* Rute Khusus Admin */}
             <Route element={<AdminLayout />}>
               <Route path="/admin/employees" element={<Employees />} />
+              <Route path="/admin/kipapp" element={<Kipapp />} />
             </Route>
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
