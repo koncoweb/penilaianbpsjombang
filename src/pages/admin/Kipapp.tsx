@@ -124,13 +124,12 @@ const Kipapp = () => {
   useEffect(() => {
     if (editingKipapp) {
       editForm.reset({
-          employee_id: kipappData.find(k => k.id === editingKipapp.id)?.employees.name, // This is tricky, we need employee_id
           month: editingKipapp.month,
           year: editingKipapp.year,
           kipapp_value: editingKipapp.kipapp_value,
       });
     }
-  }, [editingKipapp, editForm, kipappData]);
+  }, [editingKipapp, editForm]);
 
 
   const onAddSubmit = async (values: z.infer<typeof kipappSchema>) => {
@@ -155,7 +154,6 @@ const Kipapp = () => {
 
   const onEditSubmit = async (values: z.infer<typeof kipappSchema>) => {
     if (!editingKipapp) return;
-    // We only update value, not the identifiers
     const { error } = await supabase.from("kipapp").update({ kipapp_value: values.kipapp_value }).eq("id", editingKipapp.id);
     if (error) {
       toast({ title: "Error", description: `Gagal memperbarui data: ${error.message}`, variant: "destructive" });
