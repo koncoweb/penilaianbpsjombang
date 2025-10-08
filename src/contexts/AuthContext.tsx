@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type AuthContextType = {
   user: User | null;
+  session: Session | null;
   isAdmin: boolean;
   loading: boolean;
   logout: () => Promise<void>;
@@ -13,12 +14,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         const { data: profile } = await supabase
@@ -37,6 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
           const { data: profile } = await supabase
@@ -63,6 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value = {
     user,
+    session,
     isAdmin,
     loading,
     logout,

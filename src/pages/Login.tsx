@@ -2,10 +2,26 @@ import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const Login = () => {
   const { session } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          navigate('/');
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   if (session) {
     return <Navigate to="/" replace />;
@@ -22,6 +38,7 @@ const Login = () => {
           providers={[]}
           theme="light"
           socialLayout="horizontal"
+          redirectTo={window.location.origin}
         />
       </div>
     </div>
