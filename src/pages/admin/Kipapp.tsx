@@ -84,6 +84,10 @@ const Kipapp = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
+  // Tambahan state untuk perhitungan triwulan
+  const [computeYear, setComputeYear] = useState<number>(new Date().getFullYear());
+  const [isComputing, setIsComputing] = useState(false);
+
   const addForm = useForm<z.infer<typeof kipappSchema>>({
     resolver: zodResolver(kipappSchema),
     defaultValues: {
@@ -131,6 +135,25 @@ const Kipapp = () => {
     }
   }, [editingKipapp, editForm]);
 
+  const handleComputeQuarterly = async () => {
+    setIsComputing(true);
+    const { error } = await supabase.rpc("compute_quarterly_kipapp", { p_year: computeYear });
+    setIsComputing(false);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: `Gagal menghitung rata-rata triwulan: ${error.message}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Sukses",
+      description: `Perhitungan rata-rata triwulan untuk tahun ${computeYear} berhasil disimpan ke kipapp_quarterly.`,
+    });
+  };
 
   const onAddSubmit = async (values: z.infer<typeof kipappSchema>) => {
     try {
@@ -211,6 +234,40 @@ const Kipapp = () => {
             </Form>
           </CardContent>
         </Card>
+
+        {/* Kartu baru untuk perhitungan rata-rata triwulan */}
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>Hitung Rata-rata Triwulan</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium">Tahun</label>
+                <Input
+                  type="number"
+                  value={computeYear}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value || "");
+                    setComputeYear(Number.isNaN(val) ? new Date().getFullYear() : val);
+                  }}
+                  placeholder="Contoh: 2025"
+                />
+              </div>
+              <Button
+                className="w-full"
+                onClick={handleComputeQuarterly}
+                disabled={isComputing}
+              >
+                {isComputing ? "Menghitung..." : "Hitung Rata-rata Triwulan"}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Menghitung rata-rata per triwulan untuk tahun yang dipilih dan menyimpan hasilnya ke tabel kipapp_quarterly.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="md:col-span-2">
           <CardHeader><CardTitle>Daftar Data KIPAPP</CardTitle></CardHeader>
           <CardContent>
