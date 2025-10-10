@@ -133,22 +133,40 @@ const Kipapp = () => {
 
 
   const onAddSubmit = async (values: z.infer<typeof kipappSchema>) => {
-    const { error } = await supabase.from("kipapp").insert([values]);
-    if (error) {
-      let errorMessage = `Gagal menambahkan data: ${error.message}`;
-      if (error.code === '23505') {
-        errorMessage = 'Data KIPAPP untuk pegawai ini pada bulan dan tahun yang sama sudah ada.';
+    try {
+      // Check if data already exists
+      const { data: existingData } = await supabase
+        .from("kipapp")
+        .select("id")
+        .eq("employee_id", values.employee_id)
+        .eq("month", values.month)
+        .eq("year", values.year);
+      
+      if (existingData && existingData.length > 0) {
+        toast({ 
+          title: "Error", 
+          description: "Data KIPAPP untuk pegawai ini pada bulan dan tahun yang sama sudah ada.", 
+          variant: "destructive" 
+        });
+        return;
       }
-      toast({ title: "Error", description: errorMessage, variant: "destructive" });
-    } else {
-      toast({ title: "Sukses", description: "Data KIPAPP berhasil ditambahkan." });
-      addForm.reset({
-        employee_id: "",
-        month: new Date().getMonth() + 1,
-        year: new Date().getFullYear(),
-        kipapp_value: 0,
-      });
-      fetchKipappData();
+
+      // If not exists, insert new data
+      const { error } = await supabase.from("kipapp").insert([values]);
+      if (error) {
+        toast({ title: "Error", description: `Gagal menambahkan data: ${error.message}`, variant: "destructive" });
+      } else {
+        toast({ title: "Sukses", description: "Data KIPAPP berhasil ditambahkan." });
+        addForm.reset({
+          employee_id: "",
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          kipapp_value: 0,
+        });
+        fetchKipappData();
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Terjadi kesalahan saat memproses data.", variant: "destructive" });
     }
   };
 
