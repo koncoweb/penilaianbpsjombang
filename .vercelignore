@@ -51,3 +51,7 @@ docs/
 # Git
 .git/
 .gitignore
+
+# Package manager lockfiles (use npm for Vercel)
+pnpm-lock.yaml
+yarn.lock
