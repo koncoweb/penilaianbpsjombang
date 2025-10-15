@@ -6,22 +6,18 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 
 const Login = () => {
-  const { session } = useAuth();
+  const { session, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          navigate('/');
-        }
-      }
-    );
+    if (session) {
+      navigate('/');
+    }
+  }, [session, navigate]);
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [navigate]);
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
 
   if (session) {
     return <Navigate to="/" replace />;

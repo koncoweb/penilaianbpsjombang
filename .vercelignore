@@ -1,0 +1,53 @@
+# Development files
+src/**/*.test.*
+src/**/*.spec.*
+src/**/*.stories.*
+__tests__/
+tests/
+*.test.js
+*.test.ts
+*.test.tsx
+*.spec.js
+*.spec.ts
+*.spec.tsx
+
+# Development dependencies
+node_modules/.cache/
+node_modules/.vite/
+.vite/
+.cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files (keep .env.example if exists)
+.env.local
+.env.development
+.env.test
+
+# Build artifacts that shouldn't be deployed
+dist/
+build/
+coverage/
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+docs/
+
+# Git
+.git/
+.gitignore

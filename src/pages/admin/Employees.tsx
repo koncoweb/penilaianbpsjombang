@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee, employeeSchema } from "@/entities/employees/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -49,19 +49,15 @@ import {
 } from "@/components/ui/dialog";
 import { Pencil, Trash2 } from "lucide-react";
 
-const employeeSchema = z.object({
-  name: z.string().min(1, "Nama harus diisi"),
-  nip: z.string().min(1, "NIP harus diisi"),
-  position: z.string().min(1, "Jabatan harus diisi"),
-});
-
 type Employee = z.infer<typeof employeeSchema> & { id: string };
 
 const Employees = () => {
-  const [employees, setEmployees] = useState<Employee[]>([]);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
+  const createEmployee = useCreateEmployee();
+  const updateEmployee = useUpdateEmployee();
+  const deleteEmployee = useDeleteEmployee();
 
   const addForm = useForm<z.infer<typeof employeeSchema>>({
     resolver: zodResolver(employeeSchema),
@@ -72,72 +68,89 @@ const Employees = () => {
     resolver: zodResolver(employeeSchema),
   });
 
-  useEffect(() => {
-    if (editingEmployee) {
-      editForm.reset(editingEmployee);
-    }
-  }, [editingEmployee, editForm]);
+  const { data: employees = [], isLoading, error } = useEmployees();
 
-  const fetchEmployees = async () => {
-    const { data, error } = await supabase.from("employees").select("*").order('created_at', { ascending: false });
-    if (error) {
-      toast({ title: "Error", description: "Gagal memuat data pegawai.", variant: "destructive" });
-    } else {
-      setEmployees(data as Employee[]);
-    }
+  // Show error toast if query fails
+  if (error) {
+    toast({ 
+      title: "Error", 
+      description: "Gagal memuat data pegawai.", 
+      variant: "destructive" 
+    });
+  }
+
+  // Reset edit form when editing employee changes
+  if (editingEmployee) {
+    editForm.reset(editingEmployee);
+  }
+
+  // Add employee mutation
+  const addEmployeeMutation = createEmployee;
+
+  // Edit employee mutation
+  const editEmployeeMutation = updateEmployee;
+
+  // Delete employee mutation
+  const deleteEmployeeMutation = deleteEmployee;
+
+  const onAddSubmit = (values: z.infer<typeof employeeSchema>) => {
+    addEmployeeMutation.mutate(values, {
+      onSuccess: () => {
+        toast({ title: "Sukses", description: "Pegawai berhasil ditambahkan." });
+        addForm.reset();
+      },
+      onError: (error: any) => {
+        let errorMessage = `Gagal menambahkan pegawai: ${error.message}`;
+        if (error.code === '23505' && error.details?.includes('nip')) {
+          errorMessage = 'NIP ini sudah digunakan oleh pegawai lain. Harap cek kembali dan gunakan NIP yang berbeda.';
+        }
+        toast({ title: "Error", description: errorMessage, variant: "destructive" });
+      },
+    });
   };
 
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
-
-  const onAddSubmit = async (values: z.infer<typeof employeeSchema>) => {
-    const { error } = await supabase.from("employees").insert([values]);
-    if (error) {
-      let errorMessage = `Gagal menambahkan pegawai: ${error.message}`;
-      
-      // Check for unique constraint violation on NIP
-      if (error.code === '23505' && error.details?.includes('nip')) {
-        errorMessage = 'NIP ini sudah digunakan oleh pegawai lain. Harap cek kembali dan gunakan NIP yang berbeda.';
-      }
-      
-      toast({ title: "Error", description: errorMessage, variant: "destructive" });
-    } else {
-      toast({ title: "Sukses", description: "Pegawai berhasil ditambahkan." });
-      addForm.reset();
-      fetchEmployees();
-    }
-  };
-
-  const onEditSubmit = async (values: z.infer<typeof employeeSchema>) => {
+  const onEditSubmit = (values: z.infer<typeof employeeSchema>) => {
     if (!editingEmployee) return;
-    const { error } = await supabase.from("employees").update(values).eq("id", editingEmployee.id);
-    if (error) {
-      let errorMessage = `Gagal memperbarui pegawai: ${error.message}`;
-      
-      // Check for unique constraint violation on NIP
-      if (error.code === '23505' && error.details?.includes('nip')) {
-        errorMessage = 'NIP ini sudah digunakan oleh pegawai lain. Harap cek kembali dan gunakan NIP yang berbeda.';
-      }
-      
-      toast({ title: "Error", description: errorMessage, variant: "destructive" });
-    } else {
-      toast({ title: "Sukses", description: "Data pegawai berhasil diperbarui." });
-      setIsEditDialogOpen(false);
-      setEditingEmployee(null);
-      fetchEmployees();
-    }
+    editEmployeeMutation.mutate({ id: editingEmployee.id, values }, {
+      onSuccess: () => {
+        toast({ title: "Sukses", description: "Data pegawai berhasil diperbarui." });
+        setIsEditDialogOpen(false);
+        setEditingEmployee(null);
+      },
+      onError: (error: any) => {
+        let errorMessage = `Gagal memperbarui pegawai: ${error.message}`;
+        if (error.code === '23505' && error.details?.includes('nip')) {
+          errorMessage = 'NIP ini sudah digunakan oleh pegawai lain. Harap cek kembali dan gunakan NIP yang berbeda.';
+        }
+        toast({ title: "Error", description: errorMessage, variant: "destructive" });
+      },
+    });
   };
 
-  const handleDelete = async (employeeId: string) => {
-    const { error } = await supabase.from("employees").delete().eq("id", employeeId);
-    if (error) {
-      toast({ title: "Error", description: `Gagal menghapus pegawai: ${error.message}`, variant: "destructive" });
-    } else {
-      toast({ title: "Sukses", description: "Pegawai berhasil dihapus." });
-      fetchEmployees();
-    }
+  const handleDelete = (employeeId: string) => {
+    deleteEmployeeMutation.mutate(employeeId, {
+      onSuccess: () => {
+        toast({ title: "Sukses", description: "Pegawai berhasil dihapus." });
+      },
+      onError: (error: any) => {
+        toast({ title: "Error", description: `Gagal menghapus pegawai: ${error.message}`, variant: "destructive" });
+      },
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-4">
+        <h1 className="mb-4 text-2xl font-bold">Manajemen Data Pegawai</h1>
+        <div className="flex items-center justify-center p-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Memuat data pegawai...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -151,7 +164,9 @@ const Employees = () => {
                 <FormField control={addForm.control} name="name" render={({ field }) => (<FormItem><FormLabel>Nama Lengkap</FormLabel><FormControl><Input placeholder="Masukkan nama pegawai" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 <FormField control={addForm.control} name="nip" render={({ field }) => (<FormItem><FormLabel>NIP</FormLabel><FormControl><Input placeholder="Masukkan NIP" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 <FormField control={addForm.control} name="position" render={({ field }) => (<FormItem><FormLabel>Jabatan</FormLabel><FormControl><Input placeholder="Masukkan jabatan" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <Button type="submit" className="w-full">Simpan</Button>
+                <Button variant="gradient" type="submit" className="w-full" disabled={addEmployeeMutation.isPending}>
+                  {addEmployeeMutation.isPending ? "Menyimpan..." : "Simpan"}
+                </Button>
               </form>
             </Form>
           </CardContent>
@@ -159,7 +174,8 @@ const Employees = () => {
         <Card className="md:col-span-2">
           <CardHeader><CardTitle>Daftar Pegawai</CardTitle></CardHeader>
           <CardContent>
-            <Table>
+            <div className="overflow-x-auto">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Nama</TableHead>
@@ -188,7 +204,9 @@ const Employees = () => {
                                 <FormField control={editForm.control} name="nip" render={({ field }) => (<FormItem><FormLabel>NIP</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={editForm.control} name="position" render={({ field }) => (<FormItem><FormLabel>Jabatan</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <DialogFooter>
-                                  <Button type="submit">Simpan Perubahan</Button>
+                                  <Button type="submit" disabled={editEmployeeMutation.isPending}>
+                                    {editEmployeeMutation.isPending ? "Menyimpan..." : "Simpan Perubahan"}
+                                  </Button>
                                 </DialogFooter>
                               </form>
                             </Form>
@@ -201,8 +219,13 @@ const Employees = () => {
                           <AlertDialogContent>
                             <AlertDialogHeader><AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle><AlertDialogDescription>Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data pegawai secara permanen.</AlertDialogDescription></AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Batal</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(employee.id)}>Hapus</AlertDialogAction>
+                              <AlertDialogCancel disabled={deleteEmployeeMutation.isPending}>Batal</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDelete(employee.id)}
+                                disabled={deleteEmployeeMutation.isPending}
+                              >
+                                {deleteEmployeeMutation.isPending ? "Menghapus..." : "Hapus"}
+                              </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
@@ -211,7 +234,8 @@ const Employees = () => {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

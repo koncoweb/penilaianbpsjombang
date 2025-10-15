@@ -3,25 +3,23 @@ import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Users, FileText } from "lucide-react";
+import { Menu, Users, FileText, BarChart3, CalendarX } from "lucide-react";
 
 const navItems = [
   { href: "/admin/employees", label: "Data Pegawai", icon: Users },
   { href: "/admin/kipapp", label: "Data KIPAPP", icon: FileText },
+  { href: "/admin/absen", label: "Data Absen", icon: CalendarX },
+  { href: "/admin/quarterly-report", label: "Laporan Triwulan", icon: BarChart3 },
+  { href: "/admin/renak-can", label: "RENAK CAN", icon: FileText },
 ];
 
 const AdminLayout = () => {
-  const { isAdmin, loading, user, logout } = useAuth();
+  const { isAdmin, user, logout } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
-
+  // AdminLayout no longer needs to check loading or auth
+  // ProtectedRoute already handles auth loading and redirects
+  // This component only needs to check admin status
   if (!isAdmin) {
     return <Navigate to="/" replace />;
   }
