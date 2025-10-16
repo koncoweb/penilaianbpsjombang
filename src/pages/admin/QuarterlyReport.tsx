@@ -19,15 +19,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Minus, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, BarChart3, Download } from "lucide-react";
 
 import { useQuarterlyReportComplete, useQuarterlyYears } from "@/entities/stats/hooks";
 import { formatIndonesianDecimal } from "@/utils/quarterlyReportUtils";
 import type { EmployeeCalculatedData } from "@/utils/quarterlyReportUtils";
+import { exportQuarterlyReportToPDF, exportQuarterlyReportToExcel } from "@/utils/quarterlyReportExport";
 
 const QuarterlyReport = () => {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedQuarter, setSelectedQuarter] = useState<number>(1);
+  const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
   // Fetch available years using React Query
@@ -85,6 +87,76 @@ const QuarterlyReport = () => {
     if (peringkat <= Math.ceil(totalEmployees * 0.25)) return "secondary" as const; // Green for top 25%
     if (peringkat >= Math.floor(totalEmployees * 0.75)) return "destructive" as const; // Red for bottom 25%
     return "outline" as const; // Default for middle
+  };
+
+  const handleExportPDF = async () => {
+    if (employees.length === 0) {
+      toast({
+        title: "Error",
+        description: "Tidak ada data untuk diekspor",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      const exportData = {
+        employees,
+        selectedYear,
+        selectedQuarter,
+        monthLabels: getMonthLabels(selectedQuarter)
+      };
+      exportQuarterlyReportToPDF(exportData);
+      
+      toast({
+        title: "Sukses",
+        description: "Laporan berhasil diekspor ke PDF",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Gagal mengekspor laporan ke PDF",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    if (employees.length === 0) {
+      toast({
+        title: "Error",
+        description: "Tidak ada data untuk diekspor",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      const exportData = {
+        employees,
+        selectedYear,
+        selectedQuarter,
+        monthLabels: getMonthLabels(selectedQuarter)
+      };
+      exportQuarterlyReportToExcel(exportData);
+      
+      toast({
+        title: "Sukses",
+        description: "Laporan berhasil diekspor ke Excel",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Gagal mengekspor laporan ke Excel",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
 
@@ -150,6 +222,40 @@ const QuarterlyReport = () => {
             >
               {isLoading ? "Memuat..." : "Data Akan Dimuat Otomatis"}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Export Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Ekspor Laporan</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <p className="text-sm text-muted-foreground flex-1">
+              Ekspor laporan triwulan ke format PDF atau Excel dengan semua 18 kolom data
+            </p>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleExportPDF}
+                disabled={isExporting || employees.length === 0}
+                variant="outline"
+                className="min-w-[120px]"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExporting ? "Mengekspor..." : "Export PDF"}
+              </Button>
+              <Button
+                onClick={handleExportExcel}
+                disabled={isExporting || employees.length === 0}
+                variant="outline"
+                className="min-w-[120px]"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExporting ? "Mengekspor..." : "Export Excel"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
