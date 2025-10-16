@@ -27,6 +27,15 @@ export function exportQuarterlyReportToPDF(data: ExportData) {
       throw new Error('Tidak ada data pegawai untuk diekspor');
     }
     
+    // Debug logging
+    console.log('PDF Export Data:', {
+      employeeCount: employees.length,
+      firstEmployee: employees[0],
+      selectedYear,
+      selectedQuarter,
+      monthLabels
+    });
+    
     // Create PDF in A4 landscape for better compatibility
     const doc = new jsPDF({
       orientation: 'landscape',
@@ -76,26 +85,26 @@ export function exportQuarterlyReportToPDF(data: ExportData) {
     'Peringkat'
   ];
 
-  // Prepare data rows
+  // Prepare data rows with safe value handling
   const tableData = employees.map((employee, index) => [
     (index + 1).toString(),
-    employee.name,
+    employee.name || '',
     formatIndonesianDecimal(employee.kipappMonth1, 2),
     formatIndonesianDecimal(employee.kipappMonth2, 2),
     formatIndonesianDecimal(employee.kipappMonth3, 2),
     formatIndonesianDecimal(employee.rataKipapp, 2),
     formatIndonesianDecimal(employee.rataTertimbangKipapp, 2),
-    employee.absenMonth1.toString(),
-    employee.absenMonth2.toString(),
-    employee.absenMonth3.toString(),
+    (employee.absenMonth1 ?? 0).toString(),
+    (employee.absenMonth2 ?? 0).toString(),
+    (employee.absenMonth3 ?? 0).toString(),
     formatIndonesianDecimal(employee.absensi, 2),
-    employee.renakMonth1.toString(),
-    employee.renakMonth2.toString(),
-    employee.renakMonth3.toString(),
-    employee.totalAbsenRenak.toString(),
+    (employee.renakMonth1 ?? 0).toString(),
+    (employee.renakMonth2 ?? 0).toString(),
+    (employee.renakMonth3 ?? 0).toString(),
+    (employee.totalAbsenRenak ?? 0).toString(),
     formatIndonesianDecimal(employee.rataTertimbangRenakCan, 2),
     formatIndonesianDecimal(employee.finalScore, 2),
-    employee.peringkat.toString()
+    (employee.peringkat ?? 0).toString()
   ]);
 
   // Configure autoTable for A4 landscape

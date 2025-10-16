@@ -235,6 +235,9 @@ export function getQuarterWorkingDays(quarter: number): number[] {
 /**
  * Format number with Indonesian decimal notation (comma instead of dot)
  */
-export function formatIndonesianDecimal(value: number, decimals: number = 2): string {
+export function formatIndonesianDecimal(value: number | undefined | null, decimals: number = 2): string {
+  if (value === undefined || value === null || isNaN(value)) {
+    return '0,00';
+  }
   return value.toFixed(decimals).replace('.', ',');
 }
