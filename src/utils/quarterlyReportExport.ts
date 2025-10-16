@@ -1,8 +1,10 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { formatIndonesianDecimal } from './quarterlyReportUtils';
 import type { EmployeeCalculatedData } from './quarterlyReportUtils';
+
+// Import autoTable plugin
+import 'jspdf-autotable';
 
 // Extend jsPDF type to include autoTable
 declare module 'jspdf' {
@@ -18,7 +20,7 @@ export interface ExportData {
   monthLabels: string[];
 }
 
-export function exportQuarterlyReportToPDF(data: ExportData) {
+export async function exportQuarterlyReportToPDF(data: ExportData) {
   try {
     const { employees, selectedYear, selectedQuarter, monthLabels } = data;
     
@@ -35,6 +37,9 @@ export function exportQuarterlyReportToPDF(data: ExportData) {
       selectedQuarter,
       monthLabels
     });
+    
+    // Dynamic import for autoTable to ensure it's loaded
+    const { default: autoTable } = await import('jspdf-autotable');
     
     // Create PDF in A4 landscape for better compatibility
     const doc = new jsPDF({
@@ -161,8 +166,8 @@ export function exportQuarterlyReportToPDF(data: ExportData) {
     }
   };
 
-  // Generate table
-  doc.autoTable(tableConfig);
+  // Generate table using the imported autoTable
+  autoTable(doc, tableConfig);
 
     // Save the PDF
     const fileName = `Laporan_Triwulan_${selectedYear}_Q${selectedQuarter}.pdf`;

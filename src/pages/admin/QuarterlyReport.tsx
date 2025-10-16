@@ -107,7 +107,7 @@ const QuarterlyReport = () => {
         selectedQuarter,
         monthLabels: getMonthLabels(selectedQuarter)
       };
-      exportQuarterlyReportToPDF(exportData);
+      await exportQuarterlyReportToPDF(exportData);
       
       toast({
         title: "Sukses",
