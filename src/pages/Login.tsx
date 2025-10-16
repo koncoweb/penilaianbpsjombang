@@ -27,10 +27,12 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <AppHeader />
-      <div className="flex items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-8 px-4">
         <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
-          <h2 className="mb-6 text-center text-2xl font-bold">Login</h2>
-          <p className="mb-6 text-center text-gray-600">Masuk ke sistem penilaian kinerja</p>
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Login</h2>
+            <p className="text-gray-600">Masuk ke sistem penilaian kinerja</p>
+          </div>
         <Auth
           supabaseClient={supabase}
           appearance={{ theme: ThemeSupa }}
