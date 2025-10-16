@@ -1,5 +1,9 @@
 # 📖 PANDUAN PENGGUNA SISTEM PENILAIAN KINERJA PEGAWAI BPS JOMBANG
 
+## 📋 **DISCLAIMER**
+
+**APLIKASI INI MERUPAKAN APLIKASI SEDERHANA SEBAGAI HASIL PRAKTEK MAGANG, APABILA MASIH ADA KEKURANGAN ATAU KETIDAK TEPATAN HARAP DI MAKLUMI, MESKIPUN BEGITU APLIKASI INI SUDAH MEMENUHI FUNGSI DASAR PENILAIAN KINERJA PEGAWAI BPS JOMBANG**
+
 ## 🎯 **PENDAHULUAN**
 
 Selamat datang di Sistem Penilaian Kinerja Pegawai BPS Jombang! Panduan ini akan membantu Anda menggunakan sistem dengan mudah dan efektif.
@@ -13,8 +17,8 @@ Selamat datang di Sistem Penilaian Kinerja Pegawai BPS Jombang! Panduan ini akan
 - Pastikan koneksi internet stabil
 
 ### **2. Masuk ke Sistem**
-- **URL**: `https://your-app.vercel.app`
-- **Login**: Masukkan username dan password
+- **URL**: `https://penilaian-bpsjombang.vercel.app/`
+- **Login**: Masukkan username : admin@gmail.com dan password : 12345678
 - **Klik**: Tombol "Masuk"
 
 ---
@@ -236,7 +240,22 @@ Realisasi: 5
 └─────┴─────────────────────┴────────┴────────┴────────┴────────────┴────────────────────┴────────┴────────┴────────┴────────┴────────────┴────────────┴────────────┴─────────────────┴────────────────────┴─────────┴──────────┘
 ```
 
-### **C. Statistik Laporan**
+### **C. Ekspor Laporan Triwulan**
+
+**Langkah-langkah:**
+1. **Setelah** memilih tahun dan triwulan
+2. **Klik** "Export PDF" untuk file PDF
+3. **Klik** "Export Excel" untuk file Excel
+4. **File** akan otomatis ter-download
+
+**Fitur Export:**
+- **PDF**: Format A4 landscape dengan semua 18 kolom
+- **Excel**: File .xlsx dengan formatting professional
+- **Judul**: "Laporan Triwulan Penilaian Kinerja BPS Jombang"
+- **Subtitle**: Tahun dan triwulan yang dipilih
+- **Format**: Angka dengan koma desimal (format Indonesia)
+
+### **D. Statistik Laporan**
 
 **Kartu Statistik:**
 ```
