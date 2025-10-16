@@ -19,14 +19,20 @@ export interface ExportData {
 }
 
 export function exportQuarterlyReportToPDF(data: ExportData) {
-  const { employees, selectedYear, selectedQuarter, monthLabels } = data;
-  
-  // Create PDF in A3 landscape for better fit of 18 columns
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: 'a3'
-  });
+  try {
+    const { employees, selectedYear, selectedQuarter, monthLabels } = data;
+    
+    // Validate data
+    if (!employees || employees.length === 0) {
+      throw new Error('Tidak ada data pegawai untuk diekspor');
+    }
+    
+    // Create PDF in A4 landscape for better compatibility
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
 
   // Title and subtitle
   const title = 'Laporan Triwulan Penilaian Kinerja BPS Jombang';
@@ -92,15 +98,15 @@ export function exportQuarterlyReportToPDF(data: ExportData) {
     employee.peringkat.toString()
   ]);
 
-  // Configure autoTable
+  // Configure autoTable for A4 landscape
   const tableConfig = {
     head: [columnHeaders],
     body: tableData,
     startY: 40,
     theme: 'grid' as const,
     styles: {
-      fontSize: 7,
-      cellPadding: 1.5,
+      fontSize: 6,
+      cellPadding: 1,
       overflow: 'linebreak' as const,
     },
     headStyles: {
@@ -108,29 +114,30 @@ export function exportQuarterlyReportToPDF(data: ExportData) {
       textColor: [255, 255, 255],
       halign: 'center' as const,
       fontStyle: 'bold' as const,
+      fontSize: 6,
     },
     columnStyles: {
-      0: { halign: 'center', cellWidth: 8 }, // No
-      1: { halign: 'left', cellWidth: 25 }, // Nama
-      2: { halign: 'right', cellWidth: 15 }, // Kipapp Month 1
-      3: { halign: 'right', cellWidth: 15 }, // Kipapp Month 2
-      4: { halign: 'right', cellWidth: 15 }, // Kipapp Month 3
-      5: { halign: 'right', cellWidth: 15 }, // Rata Kipapp
-      6: { halign: 'right', cellWidth: 20 }, // Rata2 Tertimbang Kipapp
-      7: { halign: 'right', cellWidth: 12 }, // Absen Month 1
-      8: { halign: 'right', cellWidth: 12 }, // Absen Month 2
-      9: { halign: 'right', cellWidth: 12 }, // Absen Month 3
-      10: { halign: 'right', cellWidth: 15 }, // ABSENSI
-      11: { halign: 'right', cellWidth: 18 }, // RENAK Month 1
-      12: { halign: 'right', cellWidth: 18 }, // RENAK Month 2
-      13: { halign: 'right', cellWidth: 18 }, // RENAK Month 3
-      14: { halign: 'right', cellWidth: 20 }, // TOTAL ABSEN RENAK
-      15: { halign: 'right', cellWidth: 22 }, // Rata2 Tertimbang Renak Can
-      16: { halign: 'right', cellWidth: 15 }, // Final
-      17: { halign: 'center', cellWidth: 12 }, // Peringkat
+      0: { halign: 'center', cellWidth: 6 }, // No
+      1: { halign: 'left', cellWidth: 18 }, // Nama
+      2: { halign: 'right', cellWidth: 10 }, // Kipapp Month 1
+      3: { halign: 'right', cellWidth: 10 }, // Kipapp Month 2
+      4: { halign: 'right', cellWidth: 10 }, // Kipapp Month 3
+      5: { halign: 'right', cellWidth: 10 }, // Rata Kipapp
+      6: { halign: 'right', cellWidth: 12 }, // Rata2 Tertimbang Kipapp
+      7: { halign: 'right', cellWidth: 8 }, // Absen Month 1
+      8: { halign: 'right', cellWidth: 8 }, // Absen Month 2
+      9: { halign: 'right', cellWidth: 8 }, // Absen Month 3
+      10: { halign: 'right', cellWidth: 10 }, // ABSENSI
+      11: { halign: 'right', cellWidth: 12 }, // RENAK Month 1
+      12: { halign: 'right', cellWidth: 12 }, // RENAK Month 2
+      13: { halign: 'right', cellWidth: 12 }, // RENAK Month 3
+      14: { halign: 'right', cellWidth: 14 }, // TOTAL ABSEN RENAK
+      15: { halign: 'right', cellWidth: 16 }, // Rata2 Tertimbang Renak Can
+      16: { halign: 'right', cellWidth: 10 }, // Final
+      17: { halign: 'center', cellWidth: 8 }, // Peringkat
     },
-    margin: { top: 40, left: 10, right: 10 },
-    tableWidth: 'auto' as const,
+    margin: { top: 40, left: 5, right: 5 },
+    tableWidth: 'wrap' as const,
     showHead: 'everyPage' as const,
     didDrawPage: function(data: any) {
       // Add page numbers
@@ -148,9 +155,14 @@ export function exportQuarterlyReportToPDF(data: ExportData) {
   // Generate table
   doc.autoTable(tableConfig);
 
-  // Save the PDF
-  const fileName = `Laporan_Triwulan_${selectedYear}_Q${selectedQuarter}.pdf`;
-  doc.save(fileName);
+    // Save the PDF
+    const fileName = `Laporan_Triwulan_${selectedYear}_Q${selectedQuarter}.pdf`;
+    doc.save(fileName);
+    
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw new Error(`Gagal membuat PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 export function exportQuarterlyReportToExcel(data: ExportData) {
